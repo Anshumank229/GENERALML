@@ -45,13 +45,33 @@ class DataIngestion:
 
 # PUT THE EXECUTION CODE HERE (at the bottom of the same file)
 if __name__ == "__main__":
+    from src.components.data_transformation import DataTransformation
+    from src.components.model_trainer import ModelTrainer
+    import os
+    
+    print("=" * 60)
+    print("STARTING COMPLETE PIPELINE")
+    print("=" * 60)
+    
+    # Step 1: Data Ingestion
     obj = DataIngestion()
     train_data, test_data = obj.initiate_data_ingestion()
-    print(f"Data Ingestion Done!")
+    print("✅ Data Ingestion Done!")
     
+    # Step 2: Data Transformation
     data_transformation = DataTransformation()
     train_arr, test_arr, _ = data_transformation.initiate_data_transformation(
         train_data, test_data
     )
-    print(f"✅ Data Transformation Done!")
-    print(f"Preprocessor file exists: {os.path.exists('artifacts/preprocessor.pkl')}")
+    print("✅ Data Transformation Done!")
+    
+    # Step 3: Model Training (THIS CREATES model.pkl)
+    print("\n🤖 Starting Model Training...")
+    model_trainer = ModelTrainer()
+    r2_score = model_trainer.initiate_model_trainer(train_arr, test_arr)
+    print(f"✅ Model Training Done! Best R² Score: {r2_score:.4f}")
+    
+    # Verify
+    print("\n📁 Artifacts Check:")
+    print(f"   preprocessor.pkl: {os.path.exists('artifacts/preprocessor.pkl')}")
+    print(f"   model.pkl: {os.path.exists('artifacts/model.pkl')}")

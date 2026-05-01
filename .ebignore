@@ -1,0 +1,9 @@
+# .ebignore
+.git/
+.gitignore
+.vscode/
+anaconda_venv/
+__pycache__/
+*.pyc
+catboost_info/
+.github/
