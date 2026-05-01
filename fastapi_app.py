@@ -3,22 +3,14 @@ import os
 import uvicorn
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from typing import Optional
 
-# Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from src.pipelines.predict_pipeline import CustomData, PredictPipeline
 
-# Create FastAPI app
 app = FastAPI(title="Student Performance Predictor", version="1.0")
 
-# Templates
-templates = Jinja2Templates(directory="templates")
-
-# Request body model (for API)
 class StudentData(BaseModel):
     gender: str
     race_ethnicity: str
@@ -31,12 +23,37 @@ class StudentData(BaseModel):
 
 @app.get('/')
 async def home():
-    return HTMLResponse(content=open('templates/index.html').read())
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head><title>Student Performance</title>
+    <style>
+        body { font-family:Arial; text-align:center; margin-top:100px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height:100vh; }
+        .box { background:white; padding:40px; border-radius:15px; display:inline-block; }
+        a { display:inline-block; padding:15px 30px; background:#667eea; color:white; text-decoration:none; border-radius:8px; font-size:18px; margin-top:20px; }
+    </style>
+    </head>
+    <body>
+        <div class="box">
+            <h1>📚 Student Math Score Predictor</h1>
+            <p>Predict your math score based on your profile</p>
+            <a href="/predict">Start Prediction</a>
+        </div>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html)
 
 
 @app.get('/predict')
 async def predict_form():
-    return HTMLResponse(content=open('templates/home.html').read())
+    html_content = open('templates/home.html', encoding='utf-8').read()
+    # Remove Jinja2 tags for clean form display
+    html_content = html_content.replace(
+        '{% if results %}\n<h2>🎯 Predicted Math Score: {{ results }}</h2>\n{% endif %}',
+        ''
+    )
+    return HTMLResponse(content=html_content)
 
 
 @app.post('/predict')
@@ -63,26 +80,25 @@ async def predict(
         pred_df = custom_data.get_data_as_data_frame()
         predict_pipeline = PredictPipeline()
         results = predict_pipeline.predict(pred_df)
+        score = float(results[0])
         
-        # Read template and replace placeholder
-        html_content = open('templates/home.html').read()
+        html_content = open('templates/home.html', encoding='utf-8').read()
         html_content = html_content.replace(
-            '{% if results %}<h2>🎯 Predicted Math Score: {{ results }}</h2>{% endif %}',
-            f'<h2>🎯 Predicted Math Score: {float(results[0]):.2f}</h2>'
+            '{% if results %}\n<h2>🎯 Predicted Math Score: {{ results }}</h2>\n{% endif %}',
+            f'<h2>🎯 Predicted Math Score: {score:.2f}</h2>'
         )
         
         return HTMLResponse(content=html_content)
     
     except Exception as e:
-        html_content = open('templates/home.html').read()
+        html_content = open('templates/home.html', encoding='utf-8').read()
         html_content = html_content.replace(
-            '{% if results %}',
+            '{% if results %}\n<h2>🎯 Predicted Math Score: {{ results }}</h2>\n{% endif %}',
             f'<h2 style="color:red;">Error: {str(e)}</h2>'
         )
         return HTMLResponse(content=html_content, status_code=500)
 
 
-# API endpoint for JSON requests
 @app.post('/api/predict')
 async def predict_api(data: StudentData):
     custom_data = CustomData(
