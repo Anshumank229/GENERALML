@@ -1,1 +1,1 @@
-web: gunicorn --bind 0.0.0.0:8000 application:application
+web: uvicorn fastapi_app:app --host 0.0.0.0 --port $PORT

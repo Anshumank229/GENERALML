@@ -8,3 +8,6 @@ xgboost
 dill
 flask
 gunicorn
+fastapi
+uvicorn
+python-multipart
