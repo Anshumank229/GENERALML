@@ -1,6 +1,6 @@
 pandas
 numpy
-scikit-learn
+scikit-learn==1.7.2
 seaborn
 matplotlib
 catboost
@@ -11,3 +11,4 @@ gunicorn
 fastapi
 uvicorn
 python-multipart
+
